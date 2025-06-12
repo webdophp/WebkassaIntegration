@@ -1,0 +1,37 @@
+{
+    "name": "webdophp/webkassa-integration",
+    "version": "1.0.0",
+    "description": "Webkassa Integration for Laravel",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "webdophp\\WebkassaIntegration\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "webdophp\\WebkassaIntegration\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Balandin Dmitriy",
+            "email": "web.do17@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.4",
+        "ext-soap": "*"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.3"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "webdophp\\WebkassaIntegration\\Providers\\WebkassaIntegrationServiceProvider"
+            ]
+        }
+    }
+}
+

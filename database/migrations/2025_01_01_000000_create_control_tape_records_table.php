@@ -17,6 +17,9 @@ return new class extends Migration {
             $table->bigInteger('employee_code')->nullable()->comment('Код сотрудника');
             $table->string('number')->nullable()->comment('Номер чека');
             $table->boolean('is_offline')->default(false)->comment('Признак автономного режима');
+            $table->boolean('sent_data')->default(false)->comment('Отправил данные');
+            $table->dateTimeTz('date_sent_data')->nullable()->comment('Дата отправки данных');
+            $table->boolean('received_data')->default(false)->comment('Полученные данные');
             $table->timestamps();
 
             $table->unique(['cashbox_unique_number', 'shift_number', 'operation_type', 'date']);

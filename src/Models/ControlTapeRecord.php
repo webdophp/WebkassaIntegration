@@ -15,5 +15,8 @@ class ControlTapeRecord extends Model
         'employee_code',
         'is_offline',
         'number',
+        'sent_data',
+        'date_sent_data',
+        'received_data',
     ];
 }

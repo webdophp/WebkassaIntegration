@@ -26,4 +26,9 @@ return [
     'api_key' => env('WEBKASSA_API_KEY', ''),
 
     'base_url' => env('WEBKASSA_BASE_URL', 'https://devkkm.webkassa.kz'),
+
+    /**
+     * API-ключ для получения данных в веб сервисе
+     */
+    'api_key_data' => env('WEBKASSA_API_KEY_DATA', ''),
 ];

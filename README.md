@@ -54,7 +54,7 @@ WEBKASSA_PASSWORD=""
 WEBKASSA_URL=""
 
 # API-ключ для получения данных из веб сервиса
-WEBKASSA_API_KEY_DATA
+WEBKASSA_API_KEY_DATA=""
 ```
 
 ## 4. Дополнительная информация

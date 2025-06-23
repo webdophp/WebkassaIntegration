@@ -33,6 +33,14 @@ class WebkassaIntegrationServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        if ($this->app->runningInConsole()) {
+            // Регистрация artisan-команд
+            $this->commands([
+                \webdophp\WebkassaIntegration\Console\Commands\WebkassaData::class,
+            ]);
+        }
+
         // Публикация конфигов
         $this->publishes([
             __DIR__.'/../../config/webkassa-integration.php' => config_path('webkassa-integration.php'),

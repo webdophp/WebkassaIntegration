@@ -19,6 +19,7 @@ class WebkassaCollection extends ResourceCollection
     {
         return $this->collection->transform(function ($item) use ($request) {
             return  [
+                'id' => $item->id,
                 'cashbox_unique_number' => $item->cashbox_unique_number,
                 'shift_number' => $item->shift_number,
                 'operation_type' => $item->operation_type,

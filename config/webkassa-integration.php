@@ -31,4 +31,9 @@ return [
      * API-ключ для получения данных в веб сервисе
      */
     'api_key_data' => env('WEBKASSA_API_KEY_DATA', ''),
+
+    /**
+     * Загружать маршруты или нет. Если нужно свою обработку middleware написать
+     */
+    'load_routes' => true,
 ];

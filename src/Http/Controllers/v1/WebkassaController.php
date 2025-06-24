@@ -1,12 +1,12 @@
 <?php
 
-namespace webdophp\WebkassaIntegration\Http\Controllers;
+namespace webdophp\WebkassaIntegration\Http\Controllers\v1;
 
 
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use webdophp\WebkassaIntegration\Http\Resources\WebkassaCollection;
+use webdophp\WebkassaIntegration\Http\Resources\v1\WebkassaCollection;
 use webdophp\WebkassaIntegration\Models\ControlTapeRecord;
 
 

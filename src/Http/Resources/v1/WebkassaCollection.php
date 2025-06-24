@@ -1,6 +1,6 @@
 <?php
 
-namespace webdophp\WebkassaIntegration\Http\Resources;
+namespace webdophp\WebkassaIntegration\Http\Resources\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;

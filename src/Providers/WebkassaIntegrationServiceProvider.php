@@ -37,7 +37,7 @@ class WebkassaIntegrationServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             // Регистрация artisan-команд
             $this->commands([
-                \webdophp\WebkassaIntegration\Console\Commands\WebkassaData::class,
+                \webdophp\WebkassaIntegration\Console\Commands\WebkassaSyncCashboxes::class,
             ]);
         }
 

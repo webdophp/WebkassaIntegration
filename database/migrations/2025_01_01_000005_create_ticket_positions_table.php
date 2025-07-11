@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('ticket_positions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('ticket_id')->comment('ID чека')->constrained('webkassa_tickets')->onDelete('cascade');
+            $table->foreignId('ticket_id')->comment('ID чека')->constrained('tickets')->onDelete('cascade');
             $table->string('position_name')->comment('Наименование позиции');
             $table->decimal('count', 10, 2)->default(0)->comment('Количество');
             $table->decimal('price', 10, 2)->default(0)->comment('Цена');

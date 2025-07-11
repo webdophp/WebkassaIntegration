@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('ticket_payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('ticket_id')->comment('ID чека')->constrained('webkassa_tickets')->onDelete('cascade');
+            $table->foreignId('ticket_id')->comment('ID чека')->constrained('tickets')->onDelete('cascade');
             $table->decimal('sum', 10, 2)->comment('Сумма платежа');
             $table->integer('payment_type')->nullable()->comment('Типа платежа');
             $table->string('payment_type_name')->nullable()->comment('Название типа платежа');

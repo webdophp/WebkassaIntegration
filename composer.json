@@ -1,6 +1,6 @@
 {
     "name": "webdophp/webkassa-integration",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Webkassa Integration for Laravel",
     "license": "MIT",
     "autoload": {
@@ -20,7 +20,7 @@
         }
     ],
     "require": {
-        "php": "^8.4",
+        "php": "^8.3 || ^8.4",
         "ext-soap": "*"
     },
     "require-dev": {

@@ -110,7 +110,7 @@ class WebkassaService
      * @return array An array containing the shift history.
      * @throws ConnectionException
      */
-    public function getShifts(string $cashboxNumber, ?string $fromDate = null, ?string $toDate = null, int $skip = 0, int $take = 500): array
+    public function getShifts(string $cashboxNumber, ?string $fromDate = null, ?string $toDate = null, int $skip = 0, int $take = 50): array
     {
         $fromDate = Carbon::parse($fromDate ?? Carbon::now()->subDay()->startOfDay())->format('d.m.Y H:i:s');
         $toDate = Carbon::parse($toDate ?? Carbon::now()->endOfDay())->format('d.m.Y H:i:s');
@@ -170,7 +170,7 @@ class WebkassaService
 
             $allTickets = array_merge($allTickets, $items);
             $skip += $batchSize;
-
+            sleep(1);
         } while (count($allTickets) < $total);
 
         return $allTickets;

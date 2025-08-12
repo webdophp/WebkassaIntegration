@@ -5,6 +5,7 @@ namespace webdophp\WebkassaIntegration\Http\Controllers\v1;
 
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use webdophp\WebkassaIntegration\Http\Resources\v1\WebkassaCollection;
 use webdophp\WebkassaIntegration\Models\Ticket;
@@ -25,11 +26,13 @@ class WebkassaController
     /**
      * Взять пачку записей
      * @return JsonResponse|WebkassaCollection
+     * @throws \Throwable
      */
     public function data(): JsonResponse|WebkassaCollection
     {
-        try{
 
+        DB::beginTransaction();
+        try{
             $records = Ticket::where('received_data', false)
                 ->select( 'id', 'shift_id', 'number', 'order_number',
                     'date', 'operation_type', 'operation_type_text',
@@ -50,6 +53,7 @@ class WebkassaController
                 ])
                 ->orderBy('id', 'ASC')
                 ->limit(100)
+                ->lockForUpdate() // блокировка до конца транзакции (другие параллельные вызовы будут ждать)
                 ->get();
 
             //Если нет строк, то статус код 204 нет данных
@@ -64,9 +68,11 @@ class WebkassaController
                 'date_sent_data' => now(),
             ]);
 
+            DB::commit();
             return new WebkassaCollection($records);
 
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }

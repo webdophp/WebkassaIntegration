@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     public function up(): void
@@ -26,10 +27,17 @@ return new class extends Migration {
             $table->unique(['shift_id', 'number', 'order_number', 'date']);
             $table->comment('Контрольная лента за смену');
         });
+        // Индекс для ускорения выборки данных (data())
+        DB::statement('CREATE INDEX IF NOT EXISTS tickets_received_data_false_idx ON tickets (id) WHERE received_data = false');
+        // Индекс для ускорения подтверждения (confirm())
+        DB::statement('CREATE INDEX IF NOT EXISTS tickets_sent_data_true_idx ON tickets (id) WHERE sent_data = true AND received_data = false');
+
     }
 
     public function down(): void
     {
+        DB::statement('DROP INDEX IF EXISTS tickets_received_data_false_idx');
+        DB::statement('DROP INDEX IF EXISTS tickets_sent_data_true_idx');
         Schema::dropIfExists('tickets');
     }
 };

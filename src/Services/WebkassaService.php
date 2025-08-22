@@ -8,6 +8,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class WebkassaService
@@ -157,6 +158,8 @@ class WebkassaService
     {
         $allTickets = [];
         $skip = 0;
+        $maxIterations = 1000; // защита от бесконечного цикла
+        $iteration = 0;
 
         do {
             $response = $this->getTickets($cashboxNumber, $shiftNumber, $skip, $batchSize);
@@ -168,9 +171,21 @@ class WebkassaService
             $items = $response['Data']['Items'] ?? [];
             $total = $response['Data']['Total'] ?? 0;
 
+            // если API вернул пусто, выходим
+            if (empty($items)) {
+                Log::warning("Webkassa вернул пустые Items при total=$total, skip=$skip");
+                break;
+            }
+
             $allTickets = array_merge($allTickets, $items);
             $skip += $batchSize;
-            sleep(1);
+
+            $iteration++;
+            if ($iteration > $maxIterations) {
+                Log::error("Превышено количество итераций при загрузке тикетов (cashbox=$cashboxNumber, shift=$shiftNumber)");
+                break;
+            }
+
         } while (count($allTickets) < $total);
 
         return $allTickets;

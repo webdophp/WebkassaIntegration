@@ -1,6 +1,7 @@
 <?php
 
 namespace webdophp\WebkassaIntegration\Jobs;
+
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -26,7 +27,7 @@ class SyncShiftsAndTickets implements ShouldQueue
     /**
      * @var int
      */
-    public int $tries = 3;
+    public int $tries = 1;
  
 
     /**
@@ -35,8 +36,11 @@ class SyncShiftsAndTickets implements ShouldQueue
      */
     public function handle(WebkassaService $service): void
     {
-        Cashbox::chunk(50, function ($cashboxes) use ($service) {
+        Cashbox::chunkById(50, function ($cashboxes) use ($service) {
             foreach ($cashboxes as $cashbox) {
+
+                // Логируем для отладки
+                Log::info("Syncing cashbox {$cashbox->id} ({$cashbox->cashbox_unique_number})");
 
                 $response = $service->getShifts($cashbox->cashbox_unique_number);
                 if (isset($response['error']) && $response['error']) {

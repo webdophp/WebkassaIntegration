@@ -54,9 +54,6 @@ class SyncCashboxShifts implements ShouldQueue
                 ],
                 [
                     'open_date'  => Carbon::parse($shiftItem['OpenDate']),
-                    'close_date' => !empty($shiftItem['CloseDate'])
-                        ? Carbon::parse($shiftItem['CloseDate'])
-                        : null,
                 ]
             );
 
@@ -71,6 +68,12 @@ class SyncCashboxShifts implements ShouldQueue
                 $shift->id,
                 $shift->shift_number
             );
+
+            if (!empty($shiftItem['CloseDate'])) {
+                $shift->update([
+                    'close_date' => Carbon::parse($shiftItem['CloseDate']),
+                ]);
+            }
         }
     }
 

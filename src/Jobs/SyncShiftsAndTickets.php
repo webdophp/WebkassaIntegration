@@ -28,7 +28,7 @@ class SyncShiftsAndTickets implements ShouldQueue
         Cashbox::chunkById(50, function ($cashboxes) {
             foreach ($cashboxes as $cashbox) {
                 // диспатчим отдельную задачу на каждую кассу
-                SyncCashboxShiftsAndTickets::dispatch($cashbox->id);
+                SyncCashboxShifts::dispatch($cashbox->id);
             }
         });
     }

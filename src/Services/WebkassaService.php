@@ -171,14 +171,24 @@ class WebkassaService
             $items = $response['Data']['Items'] ?? [];
             $total = $response['Data']['Total'] ?? 0;
 
-            // если API вернул пусто, выходим
+            // если API вернул пусто — прекращаем
             if (empty($items)) {
-                Log::warning("Webkassa вернул пустые Items при total=$total, skip=$skip");
+                Log::warning("Webkassa вернул пустые Items (total=$total, skip=$skip)");
                 break;
             }
 
             $allTickets = array_merge($allTickets, $items);
             $skip += $batchSize;
+
+            // если уже набрали всё количество — выходим
+            if ($skip >= $total) {
+                break;
+            }
+
+            // если API вернул меньше чем batchSize — дальше пусто
+            if (count($items) < $batchSize) {
+                break;
+            }
 
             $iteration++;
             if ($iteration > $maxIterations) {
@@ -186,10 +196,11 @@ class WebkassaService
                 break;
             }
 
-        } while (count($allTickets) < $total);
+        } while (true);
 
         return $allTickets;
     }
+
 
     /**
      * Sends a POST request to the specified API endpoint with the provided data.

@@ -20,6 +20,9 @@ class ProcessTicket implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 1;
+    public int $timeout = 120;
+
     protected int $shiftId;
 
     protected array $ticket;
@@ -35,7 +38,6 @@ class ProcessTicket implements ShouldQueue
      */
     public function handle(): void
     {
-
         $date = $this->ticket['RegistratedOn'] ?? null;
 
         if ($date && Carbon::hasFormat($date, 'd.m.Y H:i:s')) {
@@ -45,8 +47,10 @@ class ProcessTicket implements ShouldQueue
                 sprintf('Unexpected date format for ticket. Got: %s', $date ?? 'NULL')
             );
         }
-        DB::transaction(function () use ($registeredDate) {
 
+        // сохраняем сам тикет
+        $ticketModel = null;
+        DB::transaction(function () use ($registeredDate, &$ticketModel) {
             $ticketModel = Ticket::updateOrCreate(
                 [
                     'shift_id'     => $this->shiftId,
@@ -62,49 +66,17 @@ class ProcessTicket implements ShouldQueue
                     'markup'              => $this->ticket['Markup'],
                 ]
             );
-
-            $now = now();
-
-            // Payments
-            DB::table('ticket_payments')->where('ticket_id', $ticketModel->id)->delete();
-            $payments = [];
-            foreach ($this->ticket['Payments'] ?? [] as $payment) {
-                $payments[] = [
-                    'ticket_id'         => $ticketModel->id,
-                    'sum'               => $payment['Sum'] ?? 0,
-                    'payment_type'      => Ticket::PAYMENT_TYPES[trim($payment['PaymentTypeName'] ?? '')] ?? null,
-                    'payment_type_name' => $payment['PaymentTypeName'] ?? null,
-                    'created_at'        => $now,
-                    'updated_at'        => $now,
-                ];
-            }
-            if ($payments) {
-                DB::table('ticket_payments')->insert($payments);
-            }
-
-            // Positions
-            DB::table('ticket_positions')->where('ticket_id', $ticketModel->id)->delete();
-            $positions = [];
-            foreach ($this->ticket['Positions'] ?? [] as $position) {
-                $positions[] = [
-                    'ticket_id'      => $ticketModel->id,
-                    'position_name'  => $position['PositionName'] ?? '',
-                    'count'          => $position['Count'] ?? 0,
-                    'price'          => $position['Price'] ?? 0,
-                    'discount_tenge' => $position['DiscountTenge'] ?? 0,
-                    'markup'         => $position['Markup'] ?? 0,
-                    'sum'            => $position['Sum'] ?? 0,
-                    'created_at'     => $now,
-                    'updated_at'     => $now,
-                ];
-            }
-            if ($positions) {
-                DB::table('ticket_positions')->insert($positions);
-            }
-
-            unset($ticketModel,$positions,$payments,$now);
-
         });
+
+        // диспатчим под-джобы
+        if (!empty($this->ticket['Payments'])) {
+            ProcessTicketPayments::dispatch($ticketModel->id, $this->ticket['Payments']);
+        }
+
+        if (!empty($this->ticket['Positions'])) {
+            ProcessTicketPositions::dispatch($ticketModel->id, $this->ticket['Positions']);
+        }
+
     }
 
     public function failed(Throwable $exception): void

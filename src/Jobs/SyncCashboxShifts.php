@@ -60,10 +60,10 @@ class SyncCashboxShifts implements ShouldQueue
                 ]
             );
 
-//            // если смена закрыта и тикеты уже есть — пропускаем
-//            if ($shift->close_date && $shift->tickets()->exists()) {
-//                continue;
-//            }
+            // если смена закрыта и тикеты уже есть — пропускаем
+            if ($shift->close_date && $shift->tickets()->exists()) {
+                continue;
+            }
 
             // диспатчим отдельный джоб
             SyncShiftTickets::dispatch(

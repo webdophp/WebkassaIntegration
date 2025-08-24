@@ -20,10 +20,8 @@ class ProcessTicketPayments implements ShouldQueue
 
     public int $tries = 1;
     public int $timeout = 120;
-
     protected int $ticketId;
     protected array $payments;
-
 
 
     public function __construct(int $ticketId, array $payments)
@@ -60,21 +58,26 @@ class ProcessTicketPayments implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        if (config('webkassa-integration.error_log', false)) {
-            Log::error("ProcessTicketPayments job failed", [
-                'ticketId' => $this->ticketId,
-                'error' => $exception->getMessage(),
-                'trace' => $exception->getTraceAsString(),
-            ]);
-        }
+        try{
+            if (config('webkassa-integration.error_log', false)) {
+                Log::error("ProcessTicketPayments job failed", [
+                    'ticketId' => $this->ticketId,
+                    'error' => $exception->getMessage(),
+                    'trace' => $exception->getTraceAsString(),
+                ]);
+            }
 
-        if (config('webkassa-integration.error_mail', false)) {
-            Mail::to(config('webkassa-integration.mail_to'))->send(
-                new WebkassaJobFailed(
-                    $exception->getCode() . ': ' . $exception->getMessage(),
-                    $exception->getTraceAsString()
-                )
-            );
+            if (config('webkassa-integration.error_mail', false)) {
+                Mail::to(config('webkassa-integration.mail_to'))->send(
+                    new WebkassaJobFailed(
+                        $exception->getCode() . ': ' . $exception->getMessage(),
+                        $exception->getTraceAsString()
+                    )
+                );
+            }
+        }
+        catch (\Exception $e) {
+            Log::error('Mail sending failed ProcessTicketPayments', ['error' => $e->getMessage()]);
         }
     }
 }

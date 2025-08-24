@@ -18,7 +18,7 @@ class SyncShiftsAndTickets implements ShouldQueue
      * @var int
      */
     public int $tries = 1;
- 
+    public int $timeout = 120;
 
     /**
      * Контрольная летна за смену

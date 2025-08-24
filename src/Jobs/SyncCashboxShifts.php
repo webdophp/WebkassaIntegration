@@ -22,6 +22,8 @@ class SyncCashboxShifts implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 1;
+    public int $timeout = 120;
     private int $cashboxId;
 
     public function __construct(int $cashboxId)
@@ -77,23 +79,28 @@ class SyncCashboxShifts implements ShouldQueue
         }
     }
 
+
     public function failed(Throwable $exception): void
     {
-        if (config('webkassa-integration.error_log', false)) {
-            Log::error("SyncCashboxShifts job failed", [
-                'cashbox_id' => $this->cashboxId,
-                'error'      => $exception->getMessage(),
-                'trace'      => $exception->getTraceAsString(),
-            ]);
-        }
+        try {
+            if (config('webkassa-integration.error_log', false)) {
+                Log::error("SyncCashboxShifts job failed", [
+                    'cashbox_id' => $this->cashboxId,
+                    'error' => $exception->getMessage(),
+                    'trace' => $exception->getTraceAsString(),
+                ]);
+            }
 
-        if (config('webkassa-integration.error_mail', false)) {
-            Mail::to(config('webkassa-integration.mail_to'))->send(
-                new WebkassaJobFailed(
-                    $exception->getCode() . ': ' . $exception->getMessage(),
-                    $exception->getTraceAsString()
-                )
-            );
+            if (config('webkassa-integration.error_mail', false)) {
+                Mail::to(config('webkassa-integration.mail_to'))->send(
+                    new WebkassaJobFailed(
+                        $exception->getCode() . ': ' . $exception->getMessage(),
+                        $exception->getTraceAsString()
+                    )
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error('Mail sending failed SyncCashboxShifts', ['error' => $e->getMessage()]);
         }
     }
 }

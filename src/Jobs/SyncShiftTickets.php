@@ -19,6 +19,8 @@ class SyncShiftTickets implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 1;
+    public int $timeout = 120;
     protected string $cashboxNumber;
     protected int $shiftId;
     protected int $shiftNumber;
@@ -43,9 +45,8 @@ class SyncShiftTickets implements ShouldQueue
             throw new RuntimeException("Webkassa error: {$tickets['message']}");
         }
 
-        foreach ($tickets as $ticket) {
-            ProcessTicket::dispatch($this->shiftId, $ticket);
-            usleep(1500);
+        foreach ($tickets as $index => $ticket) {
+            ProcessTicket::dispatch($this->shiftId, $ticket)->delay(now()->addMilliseconds($index * 50));
         }
 
         Log::info("Tickets dispatched for cashbox={$this->cashboxNumber}, shift={$this->shiftNumber}, count=" . count($tickets));
@@ -53,23 +54,28 @@ class SyncShiftTickets implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        if (config('webkassa-integration.error_log', false)) {
-            Log::error("SyncShiftTickets job failed", [
-                'cashboxNumber' => $this->cashboxNumber,
-                'shiftId' => $this->shiftId,
-                'shiftNumber' => $this->shiftNumber,
-                'error' => $exception->getMessage(),
-                'trace' => $exception->getTraceAsString(),
-            ]);
-        }
+        try{
+            if (config('webkassa-integration.error_log', false)) {
+                Log::error("SyncShiftTickets job failed", [
+                    'cashboxNumber' => $this->cashboxNumber,
+                    'shiftId' => $this->shiftId,
+                    'shiftNumber' => $this->shiftNumber,
+                    'error' => $exception->getMessage(),
+                    'trace' => $exception->getTraceAsString(),
+                ]);
+            }
 
-        if (config('webkassa-integration.error_mail', false)) {
-            Mail::to(config('webkassa-integration.mail_to'))->send(
-                new WebkassaJobFailed(
-                    $exception->getCode() . ': ' . $exception->getMessage(),
-                    $exception->getTraceAsString()
-                )
-            );
+            if (config('webkassa-integration.error_mail', false)) {
+                Mail::to(config('webkassa-integration.mail_to'))->send(
+                    new WebkassaJobFailed(
+                        $exception->getCode() . ': ' . $exception->getMessage(),
+                        $exception->getTraceAsString()
+                    )
+                );
+            }
+        }
+        catch (\Exception $e) {
+            Log::error('Mail sending failed SyncShiftTickets', ['error' => $e->getMessage()]);
         }
     }
 }

@@ -23,22 +23,22 @@ class WebkassaJobFailed extends Mailable
     /**
      * @var array|null $cashboxes - Массив заводской/серийный номер кассы
      */
-    public array $cashboxes;
+    public ?array $cashboxes;
 
     /**
-     * @var string $token - Токен сессии Webkassa
+     * @var string|null $token - Токен сессии Webkassa
      */
-    protected string $token;
+    public ?string $token;
 
     /**
-     * @var string $cashbox - Заводской/серийный номер кассы
+     * @var string|null $cashbox - Заводской/серийный номер кассы
      */
-    protected string $cashbox;
+    public ?string $cashbox;
 
     /**
-     * @var int $shift - Номер смены
+     * @var int|null $shift - Номер смены
      */
-    protected int $shift;
+    public ?int $shift;
 
     /**
      * @param string $errorMessage
@@ -53,7 +53,7 @@ class WebkassaJobFailed extends Mailable
         $this->errorMessage = $errorMessage;
         $this->trace = $trace;
         $this->token = $token;
-        $this->cashboxes = $cashboxes;
+        $this->cashboxes = $cashboxes ?? [];
         $this->cashbox = $cashbox;
         $this->shift = $shift;
     }
@@ -64,7 +64,7 @@ class WebkassaJobFailed extends Mailable
      */
     public function build(): self
     {
-        return $this->subject(config('webkassa-integration.mail_subject'))
+        return $this->subject(config('webkassa-integration.mail_subject', 'Webkassa Job Failed'))
             ->view('webkassa-integration::failed')
             ->with([
                 'errorMessage' => $this->errorMessage,

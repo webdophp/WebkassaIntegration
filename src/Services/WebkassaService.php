@@ -220,7 +220,7 @@ class WebkassaService
         }
 
         $data['Token'] = $this->getToken();
-        $response = Http::post("{$this->baseUrl}{$endpoint}", $data);
+        $response = Http::timeout(15)->connectTimeout(5)->post("{$this->baseUrl}{$endpoint}", $data);
 
         if ($response->ok() && ($response['Errors'][0]['Code'] ?? null) === 2) {
             $this->authorize();

@@ -45,6 +45,7 @@ class SyncShiftTickets implements ShouldQueue
 
         foreach ($tickets as $ticket) {
             ProcessTicket::dispatch($this->shiftId, $ticket);
+            usleep(1500);
         }
 
         Log::info("Tickets dispatched for cashbox={$this->cashboxNumber}, shift={$this->shiftNumber}, count=" . count($tickets));

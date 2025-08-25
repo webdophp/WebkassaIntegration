@@ -94,10 +94,9 @@ class ProcessTicket implements ShouldQueue
         }
 
         // сохраняем сам тикет
-        $ticketModel = DB::transaction(function () use ($attributes, $values) {
-            return Ticket::updateOrCreate($attributes, $values);
-        });
-
+        DB::table('tickets')->updateOrInsert($attributes, $values);
+        // Получаем модель
+        $ticketModel = Ticket::where($attributes)->first();
 
         // диспатчим под-джобы
         if (!empty($this->ticket['Payments'])) {

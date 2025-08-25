@@ -69,7 +69,7 @@ class SyncCashboxShifts implements ShouldQueue
                 $cashbox->cashbox_unique_number,
                 $shift->id,
                 $shift->shift_number
-            );
+            )->delay(now()->addMilliseconds(2000));;
 
             if (!empty($shiftItem['CloseDate'])) {
                 $shift->update([

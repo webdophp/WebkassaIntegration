@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
 use Throwable;
-use webdophp\WebkassaIntegration\Mall\WebkassaJobFailed;
+use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use webdophp\WebkassaIntegration\Models\Cashbox;
 use webdophp\WebkassaIntegration\Services\WebkassaService;
 

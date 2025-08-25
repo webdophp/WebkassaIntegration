@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
+use Exception;
 use RuntimeException;
-use webdophp\WebkassaIntegration\Mall\WebkassaJobFailed;
+use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use webdophp\WebkassaIntegration\Models\Ticket;
 
 class ProcessTicket implements ShouldQueue
@@ -22,11 +23,15 @@ class ProcessTicket implements ShouldQueue
 
     public int $tries = 1;
     public int $timeout = 120;
-    protected int $shiftId;
+    protected ?int $shiftId;
 
-    protected array $ticket;
+    protected ?array $ticket;
 
-    public function __construct(int $shiftId, array $ticket)
+    /**
+     * @param int|null $shiftId
+     * @param array|null $ticket
+     */
+    public function __construct(?int $shiftId, ?array $ticket)
     {
         $this->shiftId = $shiftId;
         $this->ticket  = $ticket;
@@ -37,43 +42,70 @@ class ProcessTicket implements ShouldQueue
      */
     public function handle(): void
     {
-        $date = $this->ticket['RegistratedOn'] ?? null;
+        // Проверка обязательных переменных.
+        if (empty($this->ticket) || empty($this->shiftId)) {
+            throw new RuntimeException("Invalid job data: ticket or shiftId is null");
+        }
 
-        if ($date && Carbon::hasFormat($date, 'd.m.Y H:i:s')) {
+        // Логируем дату регистрации тикета
+        if (config('webkassa-integration.error_log', false)) {
+            Log::debug('ProcessTicket RegistratedOn', [
+                'RegistratedOn' => $this->ticket['RegistratedOn'] ?? null,
+            ]);
+        }
+
+        $date = $this->ticket['RegistratedOn'] ?? null;
+        // Проверка латы
+        if (empty($date)) {
+            throw new RuntimeException("Ticket date (RegistratedOn) is missing");
+        }
+        // Бросить исключение, если дата не правильного формата.
+
+        try {
             $registeredDate = Carbon::createFromFormat('d.m.Y H:i:s', $date);
-        } else {
-            throw new RuntimeException(
-                sprintf('Unexpected date format for ticket. Got: %s', $date ?? 'NULL')
-            );
+        } catch (Exception) {
+            throw new RuntimeException("Unexpected date format for ticket. Got: {$date}");
+        }
+
+        // Формируем массивы для сохранения
+        $attributes = [
+            'shift_id'     => $this->shiftId,
+            'number'       => $this->ticket['Number'],
+            'order_number' => $this->ticket['OrderNumber'],
+            'date'         => $registeredDate,
+        ];
+
+        $values = [
+            'operation_type'      => $this->ticket['OperationType'],
+            'operation_type_text' => $this->ticket['OperationTypeText'],
+            'total'               => $this->ticket['Total'],
+            'discount'            => $this->ticket['Discount'],
+            'markup'              => $this->ticket['Markup'],
+        ];
+
+        // Логируем все данные
+        if (config('webkassa-integration.error_log', false)) {
+            Log::debug('ProcessTicket incoming data', [
+                'attributes' => $attributes,
+                'values' => $values,
+                'payments' => $this->ticket['Payments'] ?? [],
+                'positions' => $this->ticket['Positions'] ?? [],
+            ]);
         }
 
         // сохраняем сам тикет
-        $ticketModel = null;
-        DB::transaction(function () use ($registeredDate, &$ticketModel) {
-            $ticketModel = Ticket::updateOrCreate(
-                [
-                    'shift_id'     => $this->shiftId,
-                    'number'       => $this->ticket['Number'],
-                    'order_number' => $this->ticket['OrderNumber'],
-                    'date'         => $registeredDate,
-                ],
-                [
-                    'operation_type'      => $this->ticket['OperationType'],
-                    'operation_type_text' => $this->ticket['OperationTypeText'],
-                    'total'               => $this->ticket['Total'],
-                    'discount'            => $this->ticket['Discount'],
-                    'markup'              => $this->ticket['Markup'],
-                ]
-            );
+        $ticketModel = DB::transaction(function () use ($attributes, $values) {
+            return Ticket::updateOrCreate($attributes, $values);
         });
+
 
         // диспатчим под-джобы
         if (!empty($this->ticket['Payments'])) {
-            ProcessTicketPayments::dispatch($ticketModel->id, $this->ticket['Payments'])->delay(now()->addMilliseconds(50));;
+            ProcessTicketPayments::dispatch($ticketModel->id, $this->ticket['Payments'])->delay(now()->addMilliseconds(200));;
         }
 
         if (!empty($this->ticket['Positions'])) {
-            ProcessTicketPositions::dispatch($ticketModel->id, $this->ticket['Positions'])->delay(now()->addMilliseconds(100));;
+            ProcessTicketPositions::dispatch($ticketModel->id, $this->ticket['Positions'])->delay(now()->addMilliseconds(500));;
         }
 
     }

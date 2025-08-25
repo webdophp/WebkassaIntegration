@@ -1,6 +1,6 @@
 <?php
 
-namespace webdophp\WebkassaIntegration\Mall;
+namespace webdophp\WebkassaIntegration\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;

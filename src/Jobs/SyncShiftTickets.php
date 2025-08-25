@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 use RuntimeException;
-use webdophp\WebkassaIntegration\Mall\WebkassaJobFailed;
+use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use webdophp\WebkassaIntegration\Services\WebkassaService;
 
 class SyncShiftTickets implements ShouldQueue
@@ -37,7 +37,9 @@ class SyncShiftTickets implements ShouldQueue
      */
     public function handle(WebkassaService $service): void
     {
-        Log::info("Syncing tickets for cashbox={$this->cashboxNumber}, shift={$this->shiftNumber}");
+        if (config('webkassa-integration.error_log', false)) {
+            Log::info("Syncing tickets for cashbox={$this->cashboxNumber}, shift={$this->shiftNumber}");
+        }
 
         $tickets = $service->getAllTickets($this->cashboxNumber, $this->shiftNumber);
 
@@ -46,10 +48,20 @@ class SyncShiftTickets implements ShouldQueue
         }
 
         foreach ($tickets as $index => $ticket) {
-            ProcessTicket::dispatch($this->shiftId, $ticket)->delay(now()->addMilliseconds($index * 50));
+            if (config('webkassa-integration.error_log', false)) {
+                Log::debug("SyncShiftTickets Dispatching ticket", [
+                    'cashbox' => $this->cashboxNumber ?? null,
+                    'shift' => $this->shiftNumber ?? null,
+                    'index' => $index ?? null,
+                    'number' => $ticket['Number'] ?? null,
+                    'order' => $ticket['OrderNumber'] ?? null,
+                ]);
+            }
+            ProcessTicket::dispatch($this->shiftId, $ticket)->delay(now()->addMilliseconds($index * 100));
         }
-
-        Log::info("Tickets dispatched for cashbox={$this->cashboxNumber}, shift={$this->shiftNumber}, count=" . count($tickets));
+        if (config('webkassa-integration.error_log', false)) {
+            Log::info("Tickets dispatched for cashbox={$this->cashboxNumber}, shift={$this->shiftNumber}, count=" . count($tickets));
+        }
     }
 
     public function failed(Throwable $exception): void

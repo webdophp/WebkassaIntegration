@@ -69,11 +69,11 @@ class ProcessTicket implements ShouldQueue
 
         // диспатчим под-джобы
         if (!empty($this->ticket['Payments'])) {
-            ProcessTicketPayments::dispatch($ticketModel->id, $this->ticket['Payments']);
+            ProcessTicketPayments::dispatch($ticketModel->id, $this->ticket['Payments'])->delay(now()->addMilliseconds(50));;
         }
 
         if (!empty($this->ticket['Positions'])) {
-            ProcessTicketPositions::dispatch($ticketModel->id, $this->ticket['Positions']);
+            ProcessTicketPositions::dispatch($ticketModel->id, $this->ticket['Positions'])->delay(now()->addMilliseconds(100));;
         }
 
     }

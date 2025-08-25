@@ -2,10 +2,10 @@
 
 namespace webdophp\WebkassaIntegration\Jobs;
 
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
@@ -19,12 +19,36 @@ class SyncShiftTickets implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * @var int
+     */
     public int $tries = 1;
+
+    /**
+     * @var int
+     */
     public int $timeout = 120;
+
+    /**
+     * @var string
+     */
     protected string $cashboxNumber;
+
+    /**
+     * @var int
+     */
     protected int $shiftId;
+
+    /**
+     * @var int
+     */
     protected int $shiftNumber;
 
+    /**
+     * @param string $cashboxNumber
+     * @param int $shiftId
+     * @param int $shiftNumber
+     */
     public function __construct(string $cashboxNumber, int $shiftId, int $shiftNumber)
     {
         $this->cashboxNumber = $cashboxNumber;
@@ -33,7 +57,9 @@ class SyncShiftTickets implements ShouldQueue
     }
 
     /**
-     * @throws ConnectionException
+     * @param WebkassaService $service
+     * @return void
+     * @throws Throwable
      */
     public function handle(WebkassaService $service): void
     {
@@ -64,6 +90,10 @@ class SyncShiftTickets implements ShouldQueue
         }
     }
 
+    /**
+     * @param Throwable $exception
+     * @return void
+     */
     public function failed(Throwable $exception): void
     {
         try{
@@ -86,7 +116,7 @@ class SyncShiftTickets implements ShouldQueue
                 );
             }
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
             Log::error('Mail sending failed SyncShiftTickets', ['error' => $e->getMessage()]);
         }
     }

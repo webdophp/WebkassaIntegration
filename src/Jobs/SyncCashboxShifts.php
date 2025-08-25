@@ -2,6 +2,7 @@
 
 namespace webdophp\WebkassaIntegration\Jobs;
 
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -22,10 +23,24 @@ class SyncCashboxShifts implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * @var int
+     */
     public int $tries = 1;
+
+    /**
+     * @var int
+     */
     public int $timeout = 120;
+
+    /**
+     * @var int
+     */
     private int $cashboxId;
 
+    /**
+     * @param int $cashboxId
+     */
     public function __construct(int $cashboxId)
     {
         $this->cashboxId = $cashboxId;
@@ -39,7 +54,9 @@ class SyncCashboxShifts implements ShouldQueue
     {
         $cashbox = Cashbox::findOrFail($this->cashboxId);
 
-        Log::info("Syncing shifts for cashbox {$cashbox->id} ({$cashbox->cashbox_unique_number})");
+        if (config('webkassa-integration.error_log', false)) {
+            Log::info("Syncing shifts for cashbox {$cashbox->id} ({$cashbox->cashbox_unique_number})");
+        }
 
         $response = $service->getShifts($cashbox->cashbox_unique_number);
         if (isset($response['error']) && $response['error']) {
@@ -80,6 +97,10 @@ class SyncCashboxShifts implements ShouldQueue
     }
 
 
+    /**
+     * @param Throwable $exception
+     * @return void
+     */
     public function failed(Throwable $exception): void
     {
         try {
@@ -99,7 +120,7 @@ class SyncCashboxShifts implements ShouldQueue
                     )
                 );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Mail sending failed SyncCashboxShifts', ['error' => $e->getMessage()]);
         }
     }

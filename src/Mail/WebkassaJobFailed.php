@@ -11,7 +11,7 @@ class WebkassaJobFailed extends Mailable
     use Queueable, SerializesModels;
 
     /**
-     * @var string $cashboxes - Сообщение об ошибке
+     * @var string $errorMessage - Сообщение об ошибке
      */
     public string $errorMessage;
 

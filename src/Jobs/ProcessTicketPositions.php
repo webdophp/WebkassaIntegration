@@ -2,6 +2,7 @@
 
 namespace webdophp\WebkassaIntegration\Jobs;
 
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -17,25 +18,37 @@ class ProcessTicketPositions implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /** @var int $tries */
     public int $tries = 1;
+
+    /** @var int $timeout */
     public int $timeout = 120;
 
+    /** @var int $ticketId */
     protected int $ticketId;
+
+    /** @var array $positions */
     protected array $positions;
 
+
+    /**
+     * @param int $ticketId
+     * @param array $positions
+     */
     public function __construct(int $ticketId, array $positions)
     {
         $this->ticketId = $ticketId;
         $this->positions = $positions;
     }
 
+    /**
+     * @return void
+     * @throws Throwable
+     */
     public function handle(): void
     {
         $now = now();
-
         DB::transaction(function () use ($now) {
-            DB::table('ticket_positions')->where('ticket_id', $this->ticketId)->delete();
-
             $rows = [];
             foreach ($this->positions as $position) {
                 $rows[] = [
@@ -57,11 +70,15 @@ class ProcessTicketPositions implements ShouldQueue
         });
     }
 
+    /**
+     * @param Throwable $exception
+     * @return void
+     */
     public function failed(Throwable $exception): void
     {
         try{
             if (config('webkassa-integration.error_log', false)) {
-                Log::error("ProcessTicketPayments job failed", [
+                Log::error("ProcessTicketPositions job failed", [
                     'ticketId' => $this->ticketId,
                     'error' => $exception->getMessage(),
                     'trace' => $exception->getTraceAsString(),
@@ -77,8 +94,8 @@ class ProcessTicketPositions implements ShouldQueue
                 );
             }
         }
-        catch (\Exception $e) {
-            Log::error('Mail sending failed ProcessTicketPayments', ['error' => $e->getMessage()]);
+        catch (Exception $e) {
+            Log::error('Mail sending failed ProcessTicketPositions', ['error' => $e->getMessage()]);
         }
     }
 }

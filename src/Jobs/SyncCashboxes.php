@@ -1,6 +1,8 @@
 <?php
 
 namespace webdophp\WebkassaIntegration\Jobs;
+
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -92,7 +94,7 @@ class SyncCashboxes implements ShouldQueue
                 );
             }
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
             Log::error('Mail sending failed GetCashboxes', ['error' => $e->getMessage()]);
         }
     }

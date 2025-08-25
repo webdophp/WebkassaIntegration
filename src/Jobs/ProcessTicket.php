@@ -8,7 +8,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -21,10 +20,24 @@ class ProcessTicket implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * @var int
+     */
     public int $tries = 1;
+
+    /**
+     * @var int
+     */
     public int $timeout = 120;
+
+    /**
+     * @var int|null
+     */
     protected ?int $shiftId;
 
+    /**
+     * @var array|null
+     */
     protected ?array $ticket;
 
     /**
@@ -93,22 +106,25 @@ class ProcessTicket implements ShouldQueue
             ]);
         }
 
-        // сохраняем сам тикет
-        DB::table('tickets')->updateOrInsert($attributes, $values);
-        // Получаем модель
         $ticketModel = Ticket::where($attributes)->first();
+        if (!$ticketModel) {
+            $ticketModel = Ticket::create(array_merge($attributes, $values));
+            // диспатчим под-джобы
+            if (!empty($this->ticket['Payments'])) {
+                ProcessTicketPayments::dispatch($ticketModel->id, $this->ticket['Payments'])->delay(now()->addMilliseconds(200));;
+            }
 
-        // диспатчим под-джобы
-        if (!empty($this->ticket['Payments'])) {
-            ProcessTicketPayments::dispatch($ticketModel->id, $this->ticket['Payments'])->delay(now()->addMilliseconds(200));;
-        }
-
-        if (!empty($this->ticket['Positions'])) {
-            ProcessTicketPositions::dispatch($ticketModel->id, $this->ticket['Positions'])->delay(now()->addMilliseconds(500));;
+            if (!empty($this->ticket['Positions'])) {
+                ProcessTicketPositions::dispatch($ticketModel->id, $this->ticket['Positions'])->delay(now()->addMilliseconds(500));;
+            }
         }
 
     }
 
+    /**
+     * @param Throwable $exception
+     * @return void
+     */
     public function failed(Throwable $exception): void
     {
         try {
@@ -129,7 +145,7 @@ class ProcessTicket implements ShouldQueue
                 );
             }
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
             Log::error('Mail sending failed ProcessTicket', ['error' => $e->getMessage()]);
         }
     }

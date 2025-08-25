@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
+use Exception;
 use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use webdophp\WebkassaIntegration\Models\Ticket;
 
@@ -18,25 +19,35 @@ class ProcessTicketPayments implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /** @var int $tries */
     public int $tries = 1;
+
+    /** @var int $timeout */
     public int $timeout = 120;
+
+    /** @var int $ticketId */
     protected int $ticketId;
+
+    /** @var array $payments */
     protected array $payments;
 
-
+    /**
+     * @param int $ticketId
+     * @param array $payments
+     */
     public function __construct(int $ticketId, array $payments)
     {
         $this->ticketId = $ticketId;
         $this->payments = $payments;
     }
 
+    /**
+     * @throws Throwable
+     */
     public function handle(): void
     {
         $now = now();
-
         DB::transaction(function () use ($now) {
-            DB::table('ticket_payments')->where('ticket_id', $this->ticketId)->delete();
-
             $rows = [];
             foreach ($this->payments as $payment) {
                 $rows[] = [
@@ -56,6 +67,10 @@ class ProcessTicketPayments implements ShouldQueue
     }
 
 
+    /**
+     * @param Throwable $exception
+     * @return void
+     */
     public function failed(Throwable $exception): void
     {
         try{
@@ -76,7 +91,7 @@ class ProcessTicketPayments implements ShouldQueue
                 );
             }
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
             Log::error('Mail sending failed ProcessTicketPayments', ['error' => $e->getMessage()]);
         }
     }

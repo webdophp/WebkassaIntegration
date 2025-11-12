@@ -36,13 +36,16 @@ class WebkassaService
     /**
      * Initializes the class with configuration data for Webkassa integration.
      *
+     * @param string $baseUrl Base URL of the Webkassa API
+     * @param string $login Login for authentication
+     * @param string $password Password for authentication
      * @return void
      */
-    public function __construct()
+    public function __construct(string $baseUrl, string $login, string $password)
     {
-        $this->login = config('webkassa-integration.login');
-        $this->password = config('webkassa-integration.password');
-        $this->baseUrl = config('webkassa-integration.base_url');
+        $this->baseUrl = rtrim($baseUrl, '/');
+        $this->login = $login;
+        $this->password = $password;
     }
 
     /**

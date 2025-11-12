@@ -19,13 +19,24 @@ return [
     /**
      * Данные для авторизации в Webkassa
      */
-    'login' => env('WEBKASSA_LOGIN', ''),
+    'data' => (function () {
+        $data = [];
+        $i = 1;
 
-    'password' => env('WEBKASSA_PASSWORD', ''),
+        while ($url = env("WEBKASSA_BASE_URL_{$i}")) {
+            $data[] = [
+                'base_url' => $url,
+                'login'    => env("WEBKASSA_LOGIN_{$i}", ''),
+                'password' => env("WEBKASSA_PASSWORD_{$i}", ''),
+            ];
+            $i++;
+        }
+
+        return $data;
+    })(),
+
 
     'api_key' => env('WEBKASSA_API_KEY', ''),
-
-    'base_url' => env('WEBKASSA_BASE_URL', 'https://devkkm.webkassa.kz'),
 
     /**
      * API-ключ для получения данных в веб сервисе

@@ -34,7 +34,20 @@ class WebkassaSyncCashboxes extends Command
     {
         try {
             $this->info('Webkassa command started at ' . now());
-            SyncCashboxes::dispatch();
+            $data = config('webkassa-integration.data');
+
+            if (empty($data)) {
+                $this->info('No cashboxes found in config.');
+                return;
+            }
+            foreach ($data as $index => $item) {
+                if($index==0){
+                    SyncCashboxes::dispatch($item['base_url'], $item['login'], $item['password'])->delay(now()->addSeconds(1));
+                }
+                else{
+                    SyncCashboxes::dispatch($item['base_url'], $item['login'], $item['password'])->delay(now()->addMinutes(5));
+                }
+            }
             $this->info('Webkassa completed successfully at ' . now());
         } catch (Throwable $e) {
             $this->error('Error: ' . $e->getMessage());

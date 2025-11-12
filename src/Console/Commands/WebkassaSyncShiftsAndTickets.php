@@ -33,7 +33,20 @@ class WebkassaSyncShiftsAndTickets extends Command
     {
         try {
             $this->info('Webkassa command started at ' . now());
-            SyncShiftsAndTickets::dispatch();
+            $data = config('webkassa-integration.data');
+
+            if (empty($data)) {
+                $this->info('No cashboxes found in config.');
+                return;
+            }
+            foreach ($data as $index => $item) {
+                if($index==0){
+                    SyncShiftsAndTickets::dispatch($item['base_url'], $item['login'], $item['password'])->delay(now()->addSeconds(1));
+                }
+                else{
+                    SyncShiftsAndTickets::dispatch($item['base_url'], $item['login'], $item['password'])->delay(now()->addMinutes(5));
+                }
+            }
             $this->info('Webkassa completed successfully at ' . now());
         } catch (Throwable $e) {
             $this->error('Error: ' . $e->getMessage());

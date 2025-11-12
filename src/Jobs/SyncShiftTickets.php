@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
@@ -45,29 +46,58 @@ class SyncShiftTickets implements ShouldQueue
     protected int $shiftNumber;
 
     /**
+     * @var WebkassaService $service
+     */
+    public WebkassaService $service;
+
+    /**
+     * @var string
+     */
+    protected string $baseUrl;
+
+    /**
+     * @var string
+     */
+    protected string $login;
+
+    /**
+     * @var string
+     */
+    protected string $password;
+
+    /**
+     * @param string $baseUrl
+     * @param string $login
+     * @param string $password
      * @param string $cashboxNumber
      * @param int $shiftId
      * @param int $shiftNumber
      */
-    public function __construct(string $cashboxNumber, int $shiftId, int $shiftNumber)
+    public function __construct(string $baseUrl, string $login, string $password, string $cashboxNumber, int $shiftId, int $shiftNumber)
     {
+
+        $this->baseUrl = $baseUrl;
+        $this->login = $login;
+        $this->password = $password;
         $this->cashboxNumber = $cashboxNumber;
         $this->shiftId       = $shiftId;
         $this->shiftNumber   = $shiftNumber;
     }
 
     /**
-     * @param WebkassaService $service
      * @return void
-     * @throws Throwable
+     * @throws ConnectionException
      */
-    public function handle(WebkassaService $service): void
+    public function handle(): void
     {
+
+        $this->service = new WebkassaService($this->baseUrl, $this->login, $this->password);
+
         if (config('webkassa-integration.error_log', false)) {
             Log::info("Syncing tickets for cashbox={$this->cashboxNumber}, shift={$this->shiftNumber}");
         }
 
-        $tickets = $service->getAllTickets($this->cashboxNumber, $this->shiftNumber);
+        $tickets = $this->service->getAllTickets($this->cashboxNumber, $this->shiftNumber);
 
         if (isset($tickets['error']) && $tickets['error']) {
             throw new RuntimeException("Webkassa error: {$tickets['message']}");

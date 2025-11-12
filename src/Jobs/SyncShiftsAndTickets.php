@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use webdophp\WebkassaIntegration\Models\Cashbox;
+use webdophp\WebkassaIntegration\Services\WebkassaService;
 
 
 class SyncShiftsAndTickets implements ShouldQueue
@@ -25,15 +26,48 @@ class SyncShiftsAndTickets implements ShouldQueue
     public int $timeout = 120;
 
     /**
+     * @var WebkassaService $service
+     */
+    public WebkassaService $service;
+
+    /**
+     * @var string
+     */
+    protected string $baseUrl;
+
+    /**
+     * @var string
+     */
+    protected string $login;
+
+    /**
+     * @var string
+     */
+    protected string $password;
+
+    /**
+     * @param string $baseUrl
+     * @param string $login
+     * @param string $password
+     */
+    public function __construct(string $baseUrl, string $login, string $password)
+    {
+        $this->baseUrl = $baseUrl;
+        $this->login = $login;
+        $this->password = $password;
+    }
+
+    /**
      * Контрольная летна за смену
      * @return void
      */
     public function handle(): void
     {
+
         Cashbox::chunkById(50, function ($cashboxes) {
             foreach ($cashboxes as $cashbox) {
                 // диспатчим отдельную задачу на каждую кассу
-                SyncCashboxShifts::dispatch($cashbox->id);
+                SyncCashboxShifts::dispatch($this->baseUrl, $this->login, $this->password, $cashbox->id);
             }
         });
     }

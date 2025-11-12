@@ -41,16 +41,48 @@ class SyncCashboxes implements ShouldQueue
      */
     public int $tries = 3;
 
+    /**
+     * @var WebkassaService $service
+     */
+    public WebkassaService $service;
+
+    /**
+     * @var string
+     */
+    protected string $baseUrl;
+
+    /**
+     * @var string
+     */
+    protected string $login;
+
+    /**
+     * @var string
+     */
+    protected string $password;
+
+    /**
+     * @param string $baseUrl
+     * @param string $login
+     * @param string $password
+     */
+    public function __construct(string $baseUrl, string $login, string $password)
+    {
+        $this->baseUrl = $baseUrl;
+        $this->login = $login;
+        $this->password = $password;
+    }
 
     /**
      * Получение списка касс
-     * @param WebkassaService $service
      * @return void
      * @throws ConnectionException
      */
-    public function handle(WebkassaService $service): void
+    public function handle(): void
     {
-        $response = $service->getAvailableCashboxes();
+        $this->service = new WebkassaService($this->baseUrl, $this->login, $this->password);
+
+        $response = $this->service->getAvailableCashboxes();
         if (isset($response['error']) && $response['error']) {
             throw new RuntimeException("Webkassa error [{$response['status']}]: {$response['message']}");
         }

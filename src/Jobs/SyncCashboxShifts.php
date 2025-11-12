@@ -39,10 +39,37 @@ class SyncCashboxShifts implements ShouldQueue
     private int $cashboxId;
 
     /**
+     * @var WebkassaService $service
+     */
+    public WebkassaService $service;
+
+    /**
+     * @var string
+     */
+    protected string $baseUrl;
+
+    /**
+     * @var string
+     */
+    protected string $login;
+
+    /**
+     * @var string
+     */
+    protected string $password;
+
+
+    /**
+     * @param string $baseUrl
+     * @param string $login
+     * @param string $password
      * @param int $cashboxId
      */
-    public function __construct(int $cashboxId)
+    public function __construct(string $baseUrl, string $login, string $password, int $cashboxId)
     {
+        $this->baseUrl = $baseUrl;
+        $this->login = $login;
+        $this->password = $password;
         $this->cashboxId = $cashboxId;
     }
 
@@ -50,15 +77,17 @@ class SyncCashboxShifts implements ShouldQueue
      * Синхронизация смен по кассе
      * @throws ConnectionException
      */
-    public function handle(WebkassaService $service): void
+    public function handle(): void
     {
+        $this->service = new WebkassaService($this->baseUrl, $this->login, $this->password);
+
         $cashbox = Cashbox::findOrFail($this->cashboxId);
 
         if (config('webkassa-integration.error_log', false)) {
             Log::info("Syncing shifts for cashbox {$cashbox->id} ({$cashbox->cashbox_unique_number})");
         }
 
-        $response = $service->getShifts($cashbox->cashbox_unique_number);
+        $response = $this->service->getShifts($cashbox->cashbox_unique_number);
         if (isset($response['error']) && $response['error']) {
             throw new RuntimeException("Webkassa error [{$response['status']}]: {$response['message']}");
         }
@@ -83,6 +112,7 @@ class SyncCashboxShifts implements ShouldQueue
 
             // диспатчим отдельный джоб
             SyncShiftTickets::dispatch(
+                $this->baseUrl, $this->login, $this->password,
                 $cashbox->cashbox_unique_number,
                 $shift->id,
                 $shift->shift_number

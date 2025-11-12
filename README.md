@@ -44,18 +44,29 @@ WEBKASSA_MAIL_SUBJECT="WebkassaFetchData Job Failed"
 # Специальный ключ в Webkassa API-KEY
 WEBKASSA_API_KEY=""
 
-# Данные для авторизации в Webkassa API (логин)
-WEBKASSA_LOGIN=""
-
-# Данные для авторизации в Webkassa API (пароль)
-WEBKASSA_PASSWORD=""
-
-# Базовый URL Webkassa (пример тестового адреса)
-WEBKASSA_URL=""
-
 # API-ключ для получения данных из веб сервиса
 WEBKASSA_API_KEY_DATA=""
+
+
+# Данные для авторизации в Webkassa API (логин)
+WEBKASSA_LOGIN_1=""
+
+# Данные для авторизации в Webkassa API (пароль)
+WEBKASSA_PASSWORD_1=""
+
+# Базовый URL Webkassa (пример тестового адреса)
+WEBKASSA_URL_1=""
 ```
+
+#### Если нужно добавить еще подключение
+>
+> WEBKASSA_LOGIN_2=""
+>
+> WEBKASSA_PASSWORD_2=""
+>
+> WEBKASSA_URL_2=""
+> 
+
 
 ## 4. Дополнительная информация
 

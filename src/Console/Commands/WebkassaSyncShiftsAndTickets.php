@@ -41,11 +41,9 @@ class WebkassaSyncShiftsAndTickets extends Command
             }
             foreach ($data as $index => $item) {
                 if($index==0){
-                    print_r($item);
                     SyncShiftsAndTickets::dispatch($item['base_url'], $item['login'], $item['password'])->delay(now()->addSeconds(1));
                 }
                 else{
-                    print_r($item);
                     SyncShiftsAndTickets::dispatch($item['base_url'], $item['login'], $item['password'])->delay(now()->addMinutes(5));
                 }
             }

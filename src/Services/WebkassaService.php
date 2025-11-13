@@ -55,7 +55,7 @@ class WebkassaService
      */
     public function getToken(): ?string
     {
-        return Cache::get('webkassa_token');
+        return Cache::get('webkassa_token_'.$this->login);
     }
 
     /**
@@ -73,7 +73,7 @@ class WebkassaService
         ]);
 
         if ($response->successful() && isset($response['Data']['Token'])) {
-            Cache::put('webkassa_token', $response['Data']['Token'], now()->addHours(24));
+            Cache::put('webkassa_token_'.$this->login, $response['Data']['Token'], now()->addHours(24));
             return true;
         }
 

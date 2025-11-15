@@ -15,6 +15,7 @@ use Exception;
 use RuntimeException;
 use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use webdophp\WebkassaIntegration\Models\Ticket;
+use webdophp\WebkassaIntegration\Models\TicketBlacklist;
 
 class ProcessTicket implements ShouldQueue
 {
@@ -55,6 +56,12 @@ class ProcessTicket implements ShouldQueue
      */
     public function handle(): void
     {
+
+        if (isset($this->ticket['Number']) && $this->ticket['Number'] != '' && TicketBlacklist::isBlacklisted($this->ticket['Number'])) {
+            Log::warning("Ticket skipped (blacklisted): {$this->ticket['Number']}");
+            return; // просто пропускаем
+        }
+
         // Проверка обязательных переменных.
         if (empty($this->ticket) || empty($this->shiftId)) {
             throw new RuntimeException("Invalid job data: ticket or shiftId is null");
@@ -111,11 +118,11 @@ class ProcessTicket implements ShouldQueue
             $ticketModel = Ticket::create(array_merge($attributes, $values));
             // диспатчим под-джобы
             if (!empty($this->ticket['Payments'])) {
-                ProcessTicketPayments::dispatch($ticketModel->id, $this->ticket['Payments'])->delay(now()->addMilliseconds(200));;
+                ProcessTicketPayments::dispatch($ticketModel->id, $this->ticket['Payments'])->delay(now()->addMilliseconds(200));
             }
 
             if (!empty($this->ticket['Positions'])) {
-                ProcessTicketPositions::dispatch($ticketModel->id, $this->ticket['Positions'])->delay(now()->addMilliseconds(500));;
+                ProcessTicketPositions::dispatch($ticketModel->id, $this->ticket['Positions'])->delay(now()->addMilliseconds(500));
             }
         }
 

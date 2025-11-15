@@ -1,0 +1,23 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('ticket_blacklists', function (Blueprint $table) {
+            $table->id();
+            $table->string('number')->unique()->comment('Номер чека в черном списке');
+            $table->text('comment')->nullable()->comment('Причина блокировки');
+            $table->timestamps();
+        });
+
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('ticket_blacklists');
+    }
+};

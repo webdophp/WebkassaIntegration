@@ -47,4 +47,9 @@ return [
      * Загружать маршруты или нет. Если нужно свою обработку middleware написать
      */
     'load_routes' => true,
+
+    /**
+     * Количество записей при выборе
+     */
+    'operation_limit' => env('WEBKASSA_OPERATION_LIMIT', 100),
 ];

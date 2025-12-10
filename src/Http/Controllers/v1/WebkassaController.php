@@ -33,6 +33,7 @@ class WebkassaController
 
         DB::beginTransaction();
         try{
+            $limit = config('webkassa-integration.operation_limit', 100);
             $records = Ticket::where('received_data', false)
                 ->select( 'id', 'shift_id', 'number', 'order_number',
                     'date', 'operation_type', 'operation_type_text',
@@ -52,7 +53,7 @@ class WebkassaController
                     }
                 ])
                 ->orderBy('id', 'ASC')
-                ->limit(100)
+                ->limit($limit)
               //  ->lockForUpdate() // блокировка до конца транзакции (другие параллельные вызовы будут ждать)
                 ->get();
 

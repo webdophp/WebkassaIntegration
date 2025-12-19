@@ -51,5 +51,5 @@ return [
     /**
      * Количество записей при выборе
      */
-    'operation_limit' => env('WEBKASSA_OPERATION_LIMIT', 100),
+    'operation_limit' => env('WEBKASSA_OPERATION_LIMIT', 20),
 ];

@@ -4,7 +4,9 @@ namespace webdophp\WebkassaIntegration\Http\Controllers\v1;
 
 
 use Exception;
+use Throwable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use webdophp\WebkassaIntegration\Http\Resources\v1\WebkassaCollection;
@@ -26,14 +28,14 @@ class WebkassaController
     /**
      * Взять пачку записей
      * @return JsonResponse|WebkassaCollection
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function data(): JsonResponse|WebkassaCollection
     {
 
         DB::beginTransaction();
         try{
-            $limit = config('webkassa-integration.operation_limit', 100);
+            $limit = config('webkassa-integration.operation_limit', 20);
             $records = Ticket::where('received_data', false)
                 ->select( 'id', 'shift_id', 'number', 'order_number',
                     'date', 'operation_type', 'operation_type_text',
@@ -80,13 +82,19 @@ class WebkassaController
 
     /**
      * Подтвердить получение данных
+     * @param Request $request
      * @return JsonResponse
      */
-    public function confirm(): JsonResponse
+    public function confirm(Request $request): JsonResponse
     {
         try{
+            $ids = $request->input('ids', []);
+            if (empty($ids) || !is_array($ids)) {
+                throw new Exception('Идентификаторы обязательны и должны быть массивом');
+            }
+
             //Обновляем данные и говорим, что мы показали и приняли данные и больше их не показываем
-            Ticket::where('sent_data', true)->update(['received_data' => true]);
+            Ticket::whereIn('id', $ids)->where('sent_data', true)->update(['received_data' => true]);
             return response()->json(['status' => 'success', 'message' => Response::$statusTexts[Response::HTTP_OK]]);
 
         } catch (Exception $e) {

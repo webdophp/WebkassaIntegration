@@ -39,6 +39,7 @@ class WebkassaIntegrationServiceProvider extends ServiceProvider
             $this->commands([
                 \webdophp\WebkassaIntegration\Console\Commands\WebkassaSyncCashboxes::class,
                 \webdophp\WebkassaIntegration\Console\Commands\WebkassaSyncShiftsAndTickets::class,
+                \webdophp\WebkassaIntegration\Console\Commands\WebkassaSyncDayShiftsAndTickets::class,
             ]);
         }
 

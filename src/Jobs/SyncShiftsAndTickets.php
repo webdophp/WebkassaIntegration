@@ -78,12 +78,5 @@ class SyncShiftsAndTickets implements ShouldQueue
             }
         });
 
-        // Если пришла загрузка дня. То после добавления SyncCashboxShifts нужно удалить.
-        if($this->day == 'day'){
-            $repeated_ticket = RepeatedTicket::query()->where('login', $this->login)->first();
-            if ($repeated_ticket) {
-                $repeated_ticket->delete();
-            }
-        }
     }
 }

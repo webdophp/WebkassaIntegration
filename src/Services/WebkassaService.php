@@ -116,8 +116,8 @@ class WebkassaService
      */
     public function getShifts(string $cashboxNumber, ?string $fromDate = null, ?string $toDate = null, int $skip = 0, int $take = 50): array
     {
-        $fromDate = Carbon::parse($fromDate ?? Carbon::now()->subDay()->startOfDay())->format('d.m.Y H:i:s');
-        $toDate = Carbon::parse($toDate ?? Carbon::now()->endOfDay())->format('d.m.Y H:i:s');
+        $fromDate = $fromDate ? Carbon::parse($fromDate)->startOfDay() : Carbon::now()->subDay()->startOfDay();
+        $toDate = $toDate ? Carbon::parse($toDate)->endOfDay() : Carbon::now()->endOfDay();
 
         return $this->post('/Shift/ExternalHistory', [
             'CashboxUniqueNumber' => $cashboxNumber,

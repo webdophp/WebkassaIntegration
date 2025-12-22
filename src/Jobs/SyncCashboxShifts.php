@@ -16,6 +16,7 @@ use RuntimeException;
 use Throwable;
 use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use webdophp\WebkassaIntegration\Models\Cashbox;
+use webdophp\WebkassaIntegration\Models\RepeatedTicket;
 use webdophp\WebkassaIntegration\Models\Shift;
 use webdophp\WebkassaIntegration\Services\WebkassaService;
 
@@ -41,7 +42,7 @@ class SyncCashboxShifts implements ShouldQueue
     /**
      * @var WebkassaService $service
      */
-    public WebkassaService $service;
+    protected WebkassaService $service;
 
     /**
      * @var string
@@ -57,6 +58,10 @@ class SyncCashboxShifts implements ShouldQueue
      * @var string
      */
     protected string $password;
+    /**
+     * @var string
+     */
+    protected string $day;
 
 
     /**
@@ -64,13 +69,15 @@ class SyncCashboxShifts implements ShouldQueue
      * @param string $login
      * @param string $password
      * @param int $cashboxId
+     * @param string|null $day
      */
-    public function __construct(string $baseUrl, string $login, string $password, int $cashboxId)
+    public function __construct(string $baseUrl, string $login, string $password, int $cashboxId, ?string $day)
     {
         $this->baseUrl = $baseUrl;
         $this->login = $login;
         $this->password = $password;
         $this->cashboxId = $cashboxId;
+        $this->day = $day;
     }
 
     /**
@@ -87,7 +94,18 @@ class SyncCashboxShifts implements ShouldQueue
             Log::info("Syncing shifts for cashbox {$cashbox->id} ({$cashbox->cashbox_unique_number})");
         }
 
-        $response = $this->service->getShifts($cashbox->cashbox_unique_number);
+        $repeated_ticket = null;
+        if($this->day == 'day'){
+            $repeated_ticket = RepeatedTicket::query()->where('login', $this->login)->first();
+            if (!$repeated_ticket) {
+                throw new RuntimeException("Webkassa error: repeated_ticket is null");
+            }
+            $response = $this->service->getShifts($cashbox->cashbox_unique_number, $repeated_ticket->from?->toDateString(), $repeated_ticket->to?->toDateString());
+        }
+        else{
+            $response = $this->service->getShifts($cashbox->cashbox_unique_number);
+        }
+
         if (isset($response['error']) && $response['error']) {
             throw new RuntimeException("Webkassa error [{$response['status']}]: {$response['message']}");
         }
@@ -102,11 +120,15 @@ class SyncCashboxShifts implements ShouldQueue
                 ],
                 [
                     'open_date'  => Carbon::parse($shiftItem['OpenDate']),
+                    'close_date' => !empty($shiftItem['CloseDate'])
+                        ? Carbon::parse($shiftItem['CloseDate'])
+                        : null,
                 ]
             );
 
             // если смена закрыта и тикеты уже есть — пропускаем
-            if ($shift->close_date && $shift->tickets()->exists()) {
+            if ($shift->close_date && $shift->tickets()->exists() &&  is_null($repeated_ticket)) {
+                //Делаем проверку, если нет repeated_ticket, то нужно пропустить цикл, так как уже было загружено ранее эти значения
                 continue;
             }
 
@@ -116,13 +138,12 @@ class SyncCashboxShifts implements ShouldQueue
                 $cashbox->cashbox_unique_number,
                 $shift->id,
                 $shift->shift_number
-            )->delay(now()->addMilliseconds(2000));;
+            )->delay(now()->addSeconds(2));
 
-            if (!empty($shiftItem['CloseDate'])) {
-                $shift->update([
-                    'close_date' => Carbon::parse($shiftItem['CloseDate']),
-                ]);
-            }
+        }
+
+        if ($this->day == 'day' && $repeated_ticket) {
+            $repeated_ticket->delete();
         }
     }
 

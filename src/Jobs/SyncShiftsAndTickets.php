@@ -44,17 +44,23 @@ class SyncShiftsAndTickets implements ShouldQueue
      * @var string
      */
     protected string $password;
+    /**
+     * @var string
+     */
+    protected string $day;
 
     /**
      * @param string $baseUrl
      * @param string $login
      * @param string $password
+     * @param string|null $day
      */
-    public function __construct(string $baseUrl, string $login, string $password)
+    public function __construct(string $baseUrl, string $login, string $password, ?string $day)
     {
         $this->baseUrl = $baseUrl;
         $this->login = $login;
         $this->password = $password;
+        $this->day = $day;
     }
 
     /**
@@ -67,7 +73,7 @@ class SyncShiftsAndTickets implements ShouldQueue
         Cashbox::chunkById(50, function ($cashboxes) {
             foreach ($cashboxes as $cashbox) {
                 // диспатчим отдельную задачу на каждую кассу
-                SyncCashboxShifts::dispatch($this->baseUrl, $this->login, $this->password, $cashbox->id);
+                SyncCashboxShifts::dispatch($this->baseUrl, $this->login, $this->password, $cashbox->id, $this->day);
             }
         });
     }

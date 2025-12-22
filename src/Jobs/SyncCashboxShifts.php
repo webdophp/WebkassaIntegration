@@ -141,10 +141,6 @@ class SyncCashboxShifts implements ShouldQueue
             )->delay(now()->addSeconds(2));
 
         }
-
-        if ($this->day == 'day' && $repeated_ticket) {
-            $repeated_ticket->delete();
-        }
     }
 
 

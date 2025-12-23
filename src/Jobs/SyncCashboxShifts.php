@@ -58,10 +58,11 @@ class SyncCashboxShifts implements ShouldQueue
      * @var string
      */
     protected string $password;
+
     /**
-     * @var string
+     * @var string|null
      */
-    protected string $day;
+    protected ?string $day;
 
 
     /**
@@ -71,7 +72,7 @@ class SyncCashboxShifts implements ShouldQueue
      * @param int $cashboxId
      * @param string|null $day
      */
-    public function __construct(string $baseUrl, string $login, string $password, int $cashboxId, ?string $day)
+    public function __construct(string $baseUrl, string $login, string $password, int $cashboxId, ?string $day = null)
     {
         $this->baseUrl = $baseUrl;
         $this->login = $login;

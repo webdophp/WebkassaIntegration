@@ -45,10 +45,12 @@ class SyncShiftsAndTickets implements ShouldQueue
      * @var string
      */
     protected string $password;
+
+
     /**
-     * @var string
+     * @var string|null
      */
-    protected string $day;
+    protected ?string $day;
 
     /**
      * @param string $baseUrl
@@ -56,7 +58,7 @@ class SyncShiftsAndTickets implements ShouldQueue
      * @param string $password
      * @param string|null $day
      */
-    public function __construct(string $baseUrl, string $login, string $password, ?string $day)
+    public function __construct(string $baseUrl, string $login, string $password, ?string $day = null)
     {
         $this->baseUrl = $baseUrl;
         $this->login = $login;

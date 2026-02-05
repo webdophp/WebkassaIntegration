@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->decimal('total', 10, 2)->comment('Сумма чека ');
             $table->decimal('discount', 10, 2)->comment('Скидка в тенге');
             $table->decimal('markup', 10, 2)->comment('Наценка');
-            $table->decimal('tax_percent', 10, 2)->comment('Налоговая ставка');
+            $table->decimal('tax_percent', 10, 2)->default(0)->comment('Налоговая ставка');
             $table->boolean('sent_data')->default(false)->comment('Отправил данные');
             $table->dateTimeTz('date_sent_data')->nullable()->comment('Дата отправки данных');
             $table->boolean('received_data')->default(false)->comment('Полученные данные');

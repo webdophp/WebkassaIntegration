@@ -99,9 +99,9 @@ class ProcessTicket implements ShouldQueue
             'operation_type'      => $this->ticket['OperationType'],
             'operation_type_text' => $this->ticket['OperationTypeText'],
             'total'               => $this->ticket['Total'],
-            'discount'            => $this->ticket['Discount'],
-            'markup'              => $this->ticket['Markup'],
-            'tax_percent'         => $this->ticket['TaxPercent'],
+            'discount'            => $this->ticket['Discount'] ?? 0,
+            'markup'              => $this->ticket['Markup'] ?? 0,
+            'tax_percent'         => $this->ticket['TaxPercent'] ?? 0,
         ];
 
         // Логируем все данные

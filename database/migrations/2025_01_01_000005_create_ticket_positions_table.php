@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->decimal('discount_tenge', 10, 2)->default(0)->comment('Скидка (в тенеге) ');
             $table->decimal('markup', 10, 2)->default(0)->comment('Наценка');
             $table->decimal('sum', 10, 2)->default(0)->comment('Сумма');
+            $table->decimal('tax_percent', 10, 2)->comment('Налоговая ставка');
             $table->timestamps();
             $table->comment('Позиция товара/услуги в чеке');
         });

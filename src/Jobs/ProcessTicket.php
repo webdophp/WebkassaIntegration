@@ -101,6 +101,7 @@ class ProcessTicket implements ShouldQueue
             'total'               => $this->ticket['Total'],
             'discount'            => $this->ticket['Discount'],
             'markup'              => $this->ticket['Markup'],
+            'tax_percent'         => $this->ticket['TaxPercent'],
         ];
 
         // Логируем все данные

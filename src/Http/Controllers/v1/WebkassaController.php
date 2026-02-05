@@ -39,7 +39,7 @@ class WebkassaController
             $records = Ticket::where('received_data', false)
                 ->select( 'id', 'shift_id', 'number', 'order_number',
                     'date', 'operation_type', 'operation_type_text',
-                    'total', 'discount', 'markup', 'sent_data', 'date_sent_data', 'received_data')
+                    'total', 'discount', 'markup', 'tax_percent', 'sent_data', 'date_sent_data', 'received_data')
                 ->with([
                     'shift' => function ($query) {
                         $query->select('id', 'cashbox_id', 'shift_number', 'open_date', 'close_date')
@@ -51,7 +51,7 @@ class WebkassaController
                         $query->select('id','ticket_id','sum','payment_type','payment_type_name');
                     },
                     'positions' => function ($query) {
-                        $query->select('id','ticket_id','position_name','count','price', 'discount_tenge', 'markup', 'sum');
+                        $query->select('id','ticket_id','position_name','count','price', 'discount_tenge', 'markup', 'sum', 'tax_percent');
                     }
                 ])
                 ->orderBy('id', 'ASC')

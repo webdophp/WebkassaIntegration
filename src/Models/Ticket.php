@@ -32,6 +32,7 @@ class Ticket extends Model
         'total',
         'discount',
         'markup',
+        'tax_percent',
         'sent_data',
         'date_sent_data',
         'received_data'

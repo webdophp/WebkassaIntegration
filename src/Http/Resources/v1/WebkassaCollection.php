@@ -25,6 +25,7 @@ class WebkassaCollection extends ResourceCollection
                 'sum' => $item->total,
                 'discount' => $item->discount,
                 'markup' => $item->markup,
+                'tax_percent' => $item->tax_percent,
                 'date_operation' => $item->date,
                 'number' => $item->number,
                 'unique_id' => $item->order_number,

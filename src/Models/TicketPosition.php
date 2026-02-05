@@ -19,7 +19,8 @@ class TicketPosition extends Model
         'price',
         'discount_tenge',
         'markup',
-        'sum'
+        'sum',
+        'tax_percent'
     ];
 
     /**

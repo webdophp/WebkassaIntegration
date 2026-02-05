@@ -59,6 +59,7 @@ class ProcessTicketPositions implements ShouldQueue
                     'discount_tenge' => $position['DiscountTenge'] ?? 0,
                     'markup'         => $position['Markup'] ?? 0,
                     'sum'            => $position['Sum'] ?? 0,
+                    'tax_percent'    => $position['TaxPercent'] ?? 0,
                     'created_at'     => $now,
                     'updated_at'     => $now,
                 ];

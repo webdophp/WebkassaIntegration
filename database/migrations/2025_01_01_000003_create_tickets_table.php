@@ -11,7 +11,7 @@ return new class extends Migration {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shift_id')->comment('ID смены')->constrained('shifts')->onDelete('cascade');
-            $table->string('number')->unique()->comment('Номер чека (фискальный признак)');
+            $table->string('number')->index()->comment('Номер чека (фискальный признак)');
             $table->bigInteger('order_number')->comment('Порядковый номер чека');
             $table->dateTime('date')->comment('Дата и время чека');
             $table->integer('operation_type')->comment('Тип операции ');

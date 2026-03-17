@@ -16,6 +16,7 @@ use RuntimeException;
 use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use webdophp\WebkassaIntegration\Models\Ticket;
 use webdophp\WebkassaIntegration\Models\TicketBlacklist;
+use webdophp\WebkassaIntegration\Services\TelegramErrorService;
 
 class ProcessTicket implements ShouldQueue
 {
@@ -152,6 +153,18 @@ class ProcessTicket implements ShouldQueue
                     )
                 );
             }
+
+            if (config('webkassa-integration.telegram_error.error_telegram', false)) {
+                //Отправляем ошибку в телеграм канал
+                $telegram = app(TelegramErrorService::class);
+                $telegram->MessageError(
+                    "<b>Произошла ошибка при импорте из Webkassa</b>\n" .
+                    "<b>Сервис:</b> " . config('webkassa-integration.service_name') . "\n" .
+                    "<b>Код ошибки:</b> " . $exception->getCode() . "\n" .
+                    "<b>Ошибка:</b> " . $exception->getMessage()
+                );
+            }
+
         }
         catch (Exception $e) {
             Log::error('Mail sending failed ProcessTicket', ['error' => $e->getMessage()]);

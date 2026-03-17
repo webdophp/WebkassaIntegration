@@ -2,6 +2,20 @@
 
 return [
     /**
+     * Название сервиса, чтобы было удобно понимать откуда ошибка пришла в логи.
+     */
+    'service_name' => env('SERVICE_NAME', 'Webkassa'),
+
+    /**
+     * Легируем ошибки в телеграм
+     */
+    'telegram_error' => [
+        'error_telegram' => env('WEBKASSA_TELEGRAM_ERROR', false),
+        'bot_token' => env('WEBKASSA_TELEGRAM_TOKEN', ''),
+        'chat_id' => env('WEBKASSA_TELEGRAM_CHAT_ID', ''),
+    ],
+
+    /**
      *  Пишем логи в лог файл или отправляем на почту
      */
     'error_log' => env('WEBKASSA_ERROR_LOG', false),

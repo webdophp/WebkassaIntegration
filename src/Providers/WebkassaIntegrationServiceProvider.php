@@ -5,6 +5,7 @@ namespace webdophp\WebkassaIntegration\Providers;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use webdophp\WebkassaIntegration\Http\Middleware\CheckApiKey;
+use webdophp\WebkassaIntegration\Services\TelegramErrorService;
 use webdophp\WebkassaIntegration\Services\WebkassaService;
 
 class WebkassaIntegrationServiceProvider extends ServiceProvider
@@ -22,6 +23,10 @@ class WebkassaIntegrationServiceProvider extends ServiceProvider
         $router->aliasMiddleware('webkassa.key', CheckApiKey::class);
 
         $this->mergeConfigFrom(__DIR__.'/../../config/webkassa-integration.php', 'webkassa-integration');
+
+        $this->app->singleton(TelegramErrorService::class, function () {
+            return new TelegramErrorService();
+        });
 
         $this->app->singleton(WebkassaService::class, function () {
             return new WebkassaService();

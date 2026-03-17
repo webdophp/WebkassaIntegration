@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use Throwable;
+use webdophp\WebkassaIntegration\Services\TelegramErrorService;
 
 class ProcessTicketPositions implements ShouldQueue
 {
@@ -92,6 +93,17 @@ class ProcessTicketPositions implements ShouldQueue
                         $exception->getCode() . ': ' . $exception->getMessage(),
                         $exception->getTraceAsString()
                     )
+                );
+            }
+
+            if (config('webkassa-integration.telegram_error.error_telegram', false)) {
+                //Отправляем ошибку в телеграм канал
+                $telegram = app(TelegramErrorService::class);
+                $telegram->MessageError(
+                    "<b>Произошла ошибка при импорте из Webkassa</b>\n" .
+                    "<b>Сервис:</b> " . config('webkassa-integration.service_name') . "\n" .
+                    "<b>Код ошибки:</b> " . $exception->getCode() . "\n" .
+                    "<b>Ошибка:</b> " . $exception->getMessage()
                 );
             }
         }

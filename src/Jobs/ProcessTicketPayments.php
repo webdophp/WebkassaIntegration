@@ -14,6 +14,7 @@ use Throwable;
 use Exception;
 use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use webdophp\WebkassaIntegration\Models\Ticket;
+use webdophp\WebkassaIntegration\Services\TelegramErrorService;
 
 class ProcessTicketPayments implements ShouldQueue
 {
@@ -88,6 +89,17 @@ class ProcessTicketPayments implements ShouldQueue
                         $exception->getCode() . ': ' . $exception->getMessage(),
                         $exception->getTraceAsString()
                     )
+                );
+            }
+
+            if (config('webkassa-integration.telegram_error.error_telegram', false)) {
+                //Отправляем ошибку в телеграм канал
+                $telegram = app(TelegramErrorService::class);
+                $telegram->MessageError(
+                    "<b>Произошла ошибка при импорте из Webkassa</b>\n" .
+                    "<b>Сервис:</b> " . config('webkassa-integration.service_name') . "\n" .
+                    "<b>Код ошибки:</b> " . $exception->getCode() . "\n" .
+                    "<b>Ошибка:</b> " . $exception->getMessage()
                 );
             }
         }

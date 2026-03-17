@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Mail;
 use Throwable;
 use RuntimeException;
 use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
+use webdophp\WebkassaIntegration\Services\TelegramErrorService;
 use webdophp\WebkassaIntegration\Services\WebkassaService;
 
 class SyncShiftTickets implements ShouldQueue
@@ -143,6 +144,20 @@ class SyncShiftTickets implements ShouldQueue
                         $exception->getCode() . ': ' . $exception->getMessage(),
                         $exception->getTraceAsString()
                     )
+                );
+            }
+
+            if (config('webkassa-integration.telegram_error.error_telegram', false)) {
+                //Отправляем ошибку в телеграм канал
+                $telegram = app(TelegramErrorService::class);
+                $telegram->MessageError(
+                    "<b>Произошла ошибка при импорте из Webkassa</b>\n" .
+                    "<b>Сервис:</b> " . config('webkassa-integration.service_name') . "\n" .
+                    "<b>Номер кассы:</b> " . $this->cashboxNumber . "\n" .
+                    "<b>ID смены:</b> " . $this->shiftId . "\n" .
+                    "<b>Номер смены:</b> " . $this->shiftNumber . "\n" .
+                    "<b>Код ошибки:</b> " . $exception->getCode() . "\n" .
+                    "<b>Ошибка:</b> " . $exception->getMessage()
                 );
             }
         }

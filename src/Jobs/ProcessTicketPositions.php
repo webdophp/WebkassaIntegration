@@ -2,7 +2,6 @@
 
 namespace webdophp\WebkassaIntegration\Jobs;
 
-use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -103,11 +102,11 @@ class ProcessTicketPositions implements ShouldQueue
                     "<b>Произошла ошибка при импорте из Webkassa</b>\n" .
                     "<b>Сервис:</b> " . config('webkassa-integration.service_name') . "\n" .
                     "<b>Код ошибки:</b> " . $exception->getCode() . "\n" .
-                    "<b>Ошибка:</b> " . $exception->getMessage()
+                    "<b>Ошибка:</b> " . htmlspecialchars($exception->getMessage())
                 );
             }
         }
-        catch (Exception $e) {
+        catch (Throwable $e) {
             Log::error('Mail sending failed ProcessTicketPositions', ['error' => $e->getMessage()]);
         }
     }

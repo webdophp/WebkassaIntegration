@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
-use Exception;
 use webdophp\WebkassaIntegration\Mail\WebkassaJobFailed;
 use webdophp\WebkassaIntegration\Models\Ticket;
 use webdophp\WebkassaIntegration\Services\TelegramErrorService;
@@ -99,11 +98,11 @@ class ProcessTicketPayments implements ShouldQueue
                     "<b>Произошла ошибка при импорте из Webkassa</b>\n" .
                     "<b>Сервис:</b> " . config('webkassa-integration.service_name') . "\n" .
                     "<b>Код ошибки:</b> " . $exception->getCode() . "\n" .
-                    "<b>Ошибка:</b> " . $exception->getMessage()
+                    "<b>Ошибка:</b> " . htmlspecialchars($exception->getMessage())
                 );
             }
         }
-        catch (Exception $e) {
+        catch (Throwable $e) {
             Log::error('Mail sending failed ProcessTicketPayments', ['error' => $e->getMessage()]);
         }
     }

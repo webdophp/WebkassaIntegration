@@ -2,7 +2,6 @@
 
 namespace webdophp\WebkassaIntegration\Jobs;
 
-use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -157,11 +156,11 @@ class SyncShiftTickets implements ShouldQueue
                     "<b>ID смены:</b> " . $this->shiftId . "\n" .
                     "<b>Номер смены:</b> " . $this->shiftNumber . "\n" .
                     "<b>Код ошибки:</b> " . $exception->getCode() . "\n" .
-                    "<b>Ошибка:</b> " . $exception->getMessage()
+                    "<b>Ошибка:</b> " . htmlspecialchars($exception->getMessage())
                 );
             }
         }
-        catch (Exception $e) {
+        catch (Throwable $e) {
             Log::error('Mail sending failed SyncShiftTickets', ['error' => $e->getMessage()]);
         }
     }

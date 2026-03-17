@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use webdophp\WebkassaIntegration\Http\Resources\v1\WebkassaCollection;
 use webdophp\WebkassaIntegration\Models\Ticket;
+use webdophp\WebkassaIntegration\Services\TelegramErrorService;
 
 
 class WebkassaController
@@ -76,6 +77,16 @@ class WebkassaController
 
         } catch (Exception $e) {
             DB::rollBack();
+            if (config('webkassa-integration.telegram_error.error_telegram', false)) {
+                //Отправляем ошибку в телеграм канал
+                $telegram = app(TelegramErrorService::class);
+                $telegram->MessageError(
+                    "<b>Произошла ошибка при выгрузки данных из микросервиса Webkassa</b>\n" .
+                    "<b>Сервис:</b> " . config('webkassa-integration.service_name') . "\n" .
+                    "<b>Код ошибки:</b> " . $e->getCode() . "\n" .
+                    "<b>Ошибка:</b> " . htmlspecialchars($e->getMessage())
+                );
+            }
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
@@ -98,6 +109,16 @@ class WebkassaController
             return response()->json(['status' => 'success', 'message' => Response::$statusTexts[Response::HTTP_OK]]);
 
         } catch (Exception $e) {
+            if (config('webkassa-integration.telegram_error.error_telegram', false)) {
+                //Отправляем ошибку в телеграм канал
+                $telegram = app(TelegramErrorService::class);
+                $telegram->MessageError(
+                    "<b>Произошла ошибка при потверждения данных из микросервиса Webkassa</b>\n" .
+                    "<b>Сервис:</b> " . config('webkassa-integration.service_name') . "\n" .
+                    "<b>Код ошибки:</b> " . $e->getCode() . "\n" .
+                    "<b>Ошибка:</b> " . htmlspecialchars($e->getMessage())
+                );
+            }
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }

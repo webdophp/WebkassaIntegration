@@ -219,7 +219,7 @@ class WebkassaService
     private function post(string $endpoint, array $data): array
     {
         if (!$this->ensureToken()) {
-            return ['error' => true, 'message' => 'Authorization failed'];
+            return ['error' => true, 'status' => 401, 'message' => 'Authorization failed'];
         }
 
         $data['Token'] = $this->getToken();

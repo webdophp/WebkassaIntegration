@@ -45,6 +45,9 @@ class WebkassaIntegrationServiceProvider extends ServiceProvider
                 \webdophp\WebkassaIntegration\Console\Commands\WebkassaSyncCashboxes::class,
                 \webdophp\WebkassaIntegration\Console\Commands\WebkassaSyncShiftsAndTickets::class,
                 \webdophp\WebkassaIntegration\Console\Commands\WebkassaSyncDayShiftsAndTickets::class,
+                // Доп. источник данных: Cashboxes / Cashbox/ShiftHistory / Check/History
+                \webdophp\WebkassaIntegration\Console\Commands\WebkassaSyncCashboxesHistory::class,
+                \webdophp\WebkassaIntegration\Console\Commands\WebkassaSyncShiftsAndCheckHistory::class,
             ]);
         }
 

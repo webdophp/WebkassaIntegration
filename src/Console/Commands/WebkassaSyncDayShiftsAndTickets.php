@@ -49,14 +49,14 @@ class WebkassaSyncDayShiftsAndTickets extends Command
                             'login' => $item['login']
                         ],
                         [
-                            'from' => now()->subDays(2)->toDateString(),
-                            'to' => now()->subDays(2)->toDateString()
+                            'from' => now()->subDays(4)->toDateString(),
+                            'to' => now()->subDays(4)->toDateString()
                         ]
                     );
                 }
             }
 
-            $delayMinutes = $skipUpdate ? 5 : 20;
+            $delayMinutes = $skipUpdate ? 20 : 5;
             foreach ($data as $index => $item) {
                 if($index==0){
                     SyncShiftsAndTickets::dispatch($item['base_url'], $item['login'], $item['password'], 'day')->delay(now()->addSeconds(1));

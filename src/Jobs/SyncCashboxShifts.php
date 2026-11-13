@@ -101,17 +101,11 @@ class SyncCashboxShifts implements ShouldQueue
             if (!$repeated_ticket) {
                 throw new RuntimeException("Webkassa error: repeated_ticket is null");
             }
-            $response = $this->service->getShifts($cashbox->cashbox_unique_number, $repeated_ticket->from?->toDateString(), $repeated_ticket->to?->toDateString());
+            $shiftsData = $this->service->getAllShifts($cashbox->cashbox_unique_number, $repeated_ticket->from?->toDateString(), $repeated_ticket->to?->toDateString());
         }
         else{
-            $response = $this->service->getShifts($cashbox->cashbox_unique_number);
+            $shiftsData = $this->service->getAllShifts($cashbox->cashbox_unique_number);
         }
-
-        if (isset($response['error']) && $response['error']) {
-            throw new RuntimeException("Webkassa error [{$response['status']}]: {$response['message']}");
-        }
-
-        $shiftsData = $response['Data']['Shifts'] ?? [];
 
         foreach ($shiftsData as $shiftItem) {
             $shift = Shift::updateOrCreate(

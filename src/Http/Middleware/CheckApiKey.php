@@ -12,9 +12,9 @@ class CheckApiKey
     {
         $expectedKey = config('webkassa-integration.api_key_data');
 
-        $providedKey = $request->header('API-KEY');
+        $providedKey = (string) $request->header('API-KEY', '');
 
-        if ($providedKey !== $expectedKey) {
+        if (empty($expectedKey) || !hash_equals($expectedKey, $providedKey)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 

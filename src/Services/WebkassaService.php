@@ -129,6 +129,63 @@ class WebkassaService
     }
 
     /**
+     * Retrieves all shifts for the cashbox within the given date range, paginating
+     * through getShifts() until the full result set has been collected.
+     *
+     * @param string $cashboxNumber The unique identifier of the cashbox.
+     * @param string|null $fromDate The start date for the shift history in YYYY-MM-DD format. Defaults to null.
+     * @param string|null $toDate The end date for the shift history in YYYY-MM-DD format. Defaults to null.
+     * @param int $batchSize The number of shifts to retrieve per request. Defaults to 50.
+     * @return array An array containing all shifts for the requested range.
+     * @throws ConnectionException
+     */
+    public function getAllShifts(string $cashboxNumber, ?string $fromDate = null, ?string $toDate = null, int $batchSize = 50): array
+    {
+        $allShifts = [];
+        $skip = 0;
+        $maxIterations = 1000; // защита от бесконечного цикла
+        $iteration = 0;
+
+        do {
+            $response = $this->getShifts($cashboxNumber, $fromDate, $toDate, $skip, $batchSize);
+
+            if (isset($response['error']) && $response['error']) {
+                throw new RuntimeException("Webkassa error [{$response['status']}]: {$response['message']}");
+            }
+
+            $items = $response['Data']['Shifts'] ?? [];
+            $total = $response['Data']['Total'] ?? 0;
+
+            // если API вернул пусто — прекращаем
+            if (empty($items)) {
+                break;
+            }
+
+            $allShifts = array_merge($allShifts, $items);
+            $skip += $batchSize;
+
+            // если уже набрали всё количество — выходим
+            if ($skip >= $total) {
+                break;
+            }
+
+            // если API вернул меньше чем batchSize — дальше пусто
+            if (count($items) < $batchSize) {
+                break;
+            }
+
+            $iteration++;
+            if ($iteration > $maxIterations) {
+                Log::error("Превышено количество итераций при загрузке смен (cashbox=$cashboxNumber)");
+                break;
+            }
+
+        } while (true);
+
+        return $allShifts;
+    }
+
+    /**
      * Retrieves a list of tickets based on the specified parameters.
      *
      * @param string $cashboxNumber The unique identifier of the cashbox.

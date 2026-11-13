@@ -50,10 +50,20 @@ class ProcessTicketPayments implements ShouldQueue
         DB::transaction(function () use ($now) {
             $rows = [];
             foreach ($this->payments as $payment) {
+                $paymentTypeName = trim($payment['PaymentTypeName'] ?? '');
+                $paymentType = Ticket::PAYMENT_TYPES[$paymentTypeName] ?? null;
+
+                if ($paymentType === null) {
+                    Log::warning('ProcessTicketPayments: unknown PaymentTypeName, payment_type set to null', [
+                        'ticketId' => $this->ticketId,
+                        'paymentTypeName' => $paymentTypeName,
+                    ]);
+                }
+
                 $rows[] = [
                     'ticket_id'         => $this->ticketId,
                     'sum'               => $payment['Sum'] ?? 0,
-                    'payment_type'      => Ticket::PAYMENT_TYPES[trim($payment['PaymentTypeName'] ?? '')] ?? null,
+                    'payment_type'      => $paymentType,
                     'payment_type_name' => $payment['PaymentTypeName'] ?? null,
                     'created_at'        => $now,
                     'updated_at'        => $now,

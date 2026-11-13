@@ -1,5 +1,9 @@
 *.log
 .DS_Store
+.ai-factory.json
+.ai-factory/
+.claude/
+.mcp.json
 .env
 .env.backup
 .env.production

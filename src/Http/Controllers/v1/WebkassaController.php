@@ -75,7 +75,7 @@ class WebkassaController
             DB::commit();
             return new WebkassaCollection($records);
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             DB::rollBack();
             if (config('webkassa-integration.telegram_error.error_telegram', false)) {
                 //Отправляем ошибку в телеграм канал
@@ -108,7 +108,7 @@ class WebkassaController
             Ticket::whereIn('id', $ids)->where('sent_data', true)->update(['received_data' => true]);
             return response()->json(['status' => 'success', 'message' => Response::$statusTexts[Response::HTTP_OK]]);
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (config('webkassa-integration.telegram_error.error_telegram', false)) {
                 //Отправляем ошибку в телеграм канал
                 $telegram = app(TelegramErrorService::class);
